@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静言 App 界面原型</title>
+<link rel="stylesheet" href="css/common.css">
+<style>
+.app-layout{display:flex;gap:32px;justify-content:center;align-items:flex-start;padding:40px 24px;min-height:calc(100vh - 60px)}
+.app-left{flex-shrink:0}.app-right{width:320px;position:sticky;top:100px}
+.phone-page{display:none;padding:16px 20px 20px}.phone-page.active{display:block;animation:fadeIn .3s ease}
+.pg-title{font-size:20px;font-weight:700;margin-bottom:14px}.pg-sub{font-size:12px;color:var(--text-light);margin-bottom:16px}
+
+/* SVG icon helper */
+.ic{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.ic svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* 手机内卡片 */
+.p-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.p-card-title{font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:500;display:flex;align-items:center;gap:6px}
+.p-card-title .ic{width:16px;height:16px}
+.p-row{display:flex;gap:8px;margin-bottom:10px}
+.p-chip{flex:1;padding:10px 6px;border-radius:10px;text-align:center;font-size:11px;font-weight:600}
+
+/* 状态行 */
+.status-3{display:flex;gap:8px}
+.s-item{flex:1;padding:10px;border-radius:10px;text-align:center;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px}
+.s-item .ic{width:18px;height:18px}
+
+/* 佩戴环 */
+.wear-ring{width:110px;height:110px;margin:8px auto 10px;position:relative}
+.wear-ring svg{transform:rotate(-90deg)}.wear-ring .rl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.wear-ring .rl .h{font-size:26px;font-weight:700;color:var(--primary)}.wear-ring .rl .u{font-size:10px;color:var(--text-light)}
+
+/* 快捷按钮 */
+.q-row{display:flex;gap:8px}
+.q-btn{flex:1;padding:12px 6px;border-radius:10px;border:none;font-size:11px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .15s}
+.q-btn:active{transform:scale(.96)}.q-btn .ic{width:20px;height:20px}
+.q-btn.pri{background:var(--primary);color:#fff}.q-btn.out{background:#fff;color:var(--primary);border:1.5px solid var(--primary)}.q-btn.wr{background:#FFF0E8;color:var(--orange)}
+
+/* 模式标签 */
+.m-tabs{display:flex;background:#E8EDF2;border-radius:10px;padding:3px;margin-bottom:14px}
+.m-tab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-light);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px}
+.m-tab .ic{width:14px;height:14px}
+.m-tab.on{background:var(--card);color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.m-panel{display:none}.m-panel.on{display:block}
+
+/* 滑块行 */
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+.s-row:last-child{border:none}.s-row .sl{font-weight:500}.s-row .sv{color:var(--primary);font-weight:600}
+.s-row .sl{display:flex;align-items:center;gap:6px}.s-row .sl .ic{width:14px;height:14px;opacity:.5}
+
+/* 选项芯片 */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{padding:7px 12px;border-radius:18px;font-size:11px;cursor:pointer;border:1.5px solid var(--border);color:var(--text-light);transition:all .2s}
+.chip.sel{border-color:var(--primary);color:var(--primary);background:#EEF2FA}
+
+/* 演示按钮 */
+.demo-btn{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.demo-btn .ic{width:18px;height:18px}
+
+/* 记录标签 */
+.r-tabs{display:flex;gap:6px;margin-bottom:12px}
+.r-tab{padding:6px 14px;border-radius:18px;font-size:11px;cursor:pointer;border:1.5px solid var(--border);color:var(--text-light);background:#fff}
+.r-tab.on{border-color:var(--primary);color:var(--primary);background:#EEF2FA}
+
+/* 柱状图 */
+.chart-ph{height:140px;background:linear-gradient(180deg,#EEF2FA,#F8FAFD);border-radius:10px;display:flex;align-items:flex-end;justify-content:space-around;padding:0 14px 14px}
+.chart-bar{width:24px;border-radius:6px 6px 0 0;position:relative;transition:height .6s ease}
+.chart-lbl{display:flex;justify-content:space-around;margin-top:6px;font-size:9px;color:var(--text-light)}
+
+/* 记录项 */
+.rec-item{padding:12px 0;border-bottom:1px solid var(--border)}.rec-item:last-child{border:none}
+.rec-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.rec-time{font-size:10px;color:var(--text-light)}
+.rec-tag{padding:2px 8px;border-radius:8px;font-size:9px;font-weight:600;display:flex;align-items:center;gap:3px}
+.rec-tag .ic{width:10px;height:10px}
+.rec-tag.w{background:#E8EEF8;color:var(--primary)}.rec-tag.h{background:#E8F5EE;color:var(--green)}
+.rec-orig{font-size:11px;color:var(--text-light);text-decoration:line-through;margin-bottom:2px}
+.rec-filt{font-size:12px;font-weight:500;display:flex;align-items:flex-start;gap:4px}
+.rec-filt .ic{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+
+/* 健康卡 */
+.h-card{background:linear-gradient(135deg,var(--primary),#7B9FD4);border-radius:14px;padding:18px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden}
+.h-card::after{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.08)}
+.h-card .hl{font-size:11px;opacity:.8}.h-card .hv{font-size:32px;font-weight:700;margin:2px 0}.h-card .hs{font-size:11px;opacity:.7}
+.p-bar{height:7px;background:rgba(255,255,255,.25);border-radius:4px;margin-top:8px;overflow:hidden}.p-bar .f{height:100%;background:#fff;border-radius:4px}
+
+/* 计划项 */
+.plan{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}.plan:last-child{border:none}
+.plan-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.plan-icon .ic{width:18px;height:18px}
+.plan-info{flex:1}.plan-info .pt{font-size:12px;font-weight:600}.plan-info .pd{font-size:10px;color:var(--text-light)}
+.plan-chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center}
+.plan-chk .ic{width:12px;height:12px}
+.plan-chk.done{background:var(--green);border-color:var(--green);color:#fff}
+
+/* 徽章 */
+.badge-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.badge{text-align:center;padding:12px 6px;border-radius:12px;background:#F8FAFD;border:1px solid transparent;transition:var(--transition)}
+.badge:hover{border-color:var(--primary-light);background:#FAFBFE}
+.badge .ic{width:28px;height:28px;margin:0 auto 6px;color:var(--primary)}
+.badge .bn{font-size:9px;color:var(--text-light);margin-top:2px;font-weight:500}
+.badge.lock{opacity:.35}.badge.lock .ic{color:var(--text-light)}
+
+/* 设备 */
+.ear-st{display:flex;justify-content:space-around;margin-bottom:12px}
+.ear-u{text-align:center}
+.ear-c{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin:0 auto 4px;position:relative}
+.ear-c::before{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid transparent}
+.ear-c.hi{background:#E8F5EE;color:var(--green)}.ear-c.hi::before{border-color:rgba(92,184,138,.2)}
+.ear-c.md{background:#FFF4E8;color:var(--orange)}.ear-c.md::before{border-color:rgba(240,160,80,.2)}
+.ear-l{font-size:10px;color:var(--text-light)}
+
+/* 设置行 */
+.set-r{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.set-r:last-child{border:none}.set-l{display:flex;align-items:center;gap:10px}
+.set-i{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.set-i .ic{width:16px;height:16px}
+.set-n{font-size:12px;font-weight:500}.set-d{font-size:10px;color:var(--text-light)}
+.set-a{color:var(--text-light);font-size:14px}
+
+/* 开关 */
+.tgl{width:40px;height:24px;border-radius:12px;background:#D0D5DD;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tgl.on{background:var(--green)}
+.tgl::after{content:'';width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl.on::after{left:18px}
+
+/* 个人中心 */
+.prof-hd{text-align:center;padding:16px 0}
+.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#7B9FD4);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:#fff}
+.avatar .ic{width:28px;height:28px}
+.prof-n{font-size:15px;font-weight:700}.prof-s{font-size:11px;color:var(--text-light)}
+
+/* 新手引导 */
+.ob{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:36px 28px;color:#fff;text-align:center;border-radius:36px}
+.ob.show{display:flex}
+.ob-icon{width:56px;height:56px;margin-bottom:14px;color:rgba(255,255,255,.9)}
+.ob-icon svg{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ob-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.ob-desc{font-size:12px;line-height:1.6;opacity:.85;margin-bottom:20px}
+.ob-dots{display:flex;gap:7px;margin-bottom:20px}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3)}.ob-dot.on{background:#fff;width:22px;border-radius:4px}
+.ob-btn{padding:10px 36px;border-radius:20px;background:#fff;color:var(--primary);font-size:13px;font-weight:600;border:none;cursor:pointer}
+
+/* 右侧说明面板 */
+.guide-panel{background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.guide-panel h3{font-size:15px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--primary);display:flex;align-items:center;gap:8px}
+.guide-panel h3 .ic{width:18px;height:18px}
+.guide-section{margin-bottom:14px}
+.guide-section h4{font-size:12px;color:var(--primary);margin-bottom:4px;font-weight:600}
+.guide-section ul{padding-left:16px;font-size:12px;line-height:1.8;color:#555}
+.guide-badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:600;margin-right:3px}
+.g-badge-n{background:#E8F5EE;color:var(--green)}.g-badge-r{background:#E8EEF8;color:var(--primary)}.g-badge-e{background:#FFF4E8;color:var(--orange)}
+.page-desc{margin-top:12px;padding:10px;background:#F0F4FF;border-radius:8px;font-size:11px;line-height:1.6;color:#555}
+.page-desc strong{display:flex;align-items:center;gap:4px}
+.page-desc .ic{width:14px;height:14px}
+
+@media(max-width:900px){.app-layout{flex-direction:column;align-items:center}.app-right{width:100%;max-width:420px;position:static}}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand"><span class="brand-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span><span>静言</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">产品介绍</a>
+    <a class="nav-link active" href="app.html">App 界面</a>
+    <a class="nav-link" href="controls.html">操作说明</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="app-layout">
+
+<!-- ===== 左侧：手机模拟器 ===== -->
+<div class="app-left">
+<div class="phone-frame">
+
+<!-- 新手引导 -->
+<div class="ob" id="ob">
+  <div class="ob-icon" id="obI"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+  <div class="ob-title" id="obT">欢迎使用静言</div>
+  <div class="ob-desc" id="obD">将语言中的情绪杂质过滤，<br>只留下信息本身</div>
+  <div class="ob-dots"><div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+  <button class="ob-btn" id="obBtn">下一页</button>
+</div>
+
+<!-- 状态栏 -->
+<div class="phone-status-bar">
+  <span style="font-size:14px;font-weight:600">9:41</span>
+  <div class="phone-notch"></div>
+  <span style="font-size:11px;display:flex;align-items:center;gap:4px">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    <svg width="16" height="14" viewBox="0 0 28 14" fill="currentColor"><rect x="0" y="1" width="22" height="12" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="2" y="3" width="16" height="8" rx="1" fill="currentColor"/><path d="M24 5v4a2 2 0 000-4z"/></svg>
+  </span>
+</div>
+
+<!-- 页面容器 -->
+<div class="phone-content">
+
+<!-- ===== 首页 ===== -->
+<div class="phone-page active" id="pg-home">
+  <div class="pg-title">下午好</div>
+  <div class="pg-sub">静言已连接，为你守护清净</div>
+  <div class="status-3">
+    <div class="s-item" style="background:#E8F5EE;color:var(--green)">
+      <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>已连接
+    </div>
+    <div class="s-item" style="background:#E8EEF8;color:var(--primary)">
+      <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></span>职场模式
+    </div>
+    <div class="s-item" style="background:#FFF4E8;color:var(--orange)">
+      <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>过滤中
+    </div>
+  </div>
+  <div class="p-card" style="margin-top:12px">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>今日佩戴时长</div>
+    <div class="wear-ring">
+      <svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="#E8EDF2" stroke-width="9"/><circle cx="55" cy="55" r="46" fill="none" stroke="var(--primary)" stroke-width="9" stroke-dasharray="289" stroke-dashoffset="87" stroke-linecap="round"/></svg>
+      <div class="rl"><div class="h">5.2</div><div class="u">/ 8 小时</div></div>
+    </div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>今日过滤摘要</div>
+    <div class="p-row" style="margin-bottom:0">
+      <div class="p-chip" style="background:#F0F4FF"><span style="font-size:22px;font-weight:700;color:var(--primary)">23</span><br><span style="font-size:10px">次过滤</span></div>
+      <div class="p-chip" style="background:#FFF4E8"><span style="font-size:22px;font-weight:700;color:var(--orange)">12</span><br><span style="font-size:10px">愤怒</span></div>
+      <div class="p-chip" style="background:#FDE8E8"><span style="font-size:22px;font-weight:700;color:var(--red)">6</span><br><span style="font-size:10px">悲伤</span></div>
+    </div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title">快捷操作</div>
+    <div class="q-row">
+      <button class="q-btn pri"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>开启过滤</button>
+      <button class="q-btn out"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></span>切换模式</button>
+      <button class="q-btn wr"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>透明模式</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 模式中心 ===== -->
+<div class="phone-page" id="pg-mode">
+  <div class="pg-title">模式中心</div>
+  <div class="m-tabs">
+    <div class="m-tab on" onclick="swMT(this,'mp-work')"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></span>职场</div>
+    <div class="m-tab" onclick="swMT(this,'mp-home')"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span>家庭</div>
+    <div class="m-tab" onclick="swMT(this,'mp-custom')"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>自定义</div>
+  </div>
+  <div class="m-panel on" id="mp-work">
+    <div class="p-card">
+      <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>简报模式</div>
+      <p style="font-size:11px;line-height:1.6;color:var(--text-light)">将语音转化为平静信息简报，情绪词标记为<span style="color:var(--orange)">【无关信息，已过滤】</span></p>
+    </div>
+    <div class="p-card">
+      <div class="p-card-title">过滤强度</div>
+      <div class="s-row"><span class="sl"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/></svg></span>轻度</span><span class="sv">保留部分语气</span></div>
+      <div class="s-row"><span class="sl"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg></span>标准</span><span class="sv" style="font-weight:700">✓ 推荐</span></div>
+      <div class="s-row"><span class="sl"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>深度</span><span class="sv">仅保留关键词</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-title">播报方式</div>
+      <div class="chips"><div class="chip sel">电子音播报</div><div class="chip">文字转语音</div><div class="chip">静音仅振动</div></div>
+    </div>
+    <button class="demo-btn"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></span>试听：原始 vs 过滤</button>
+  </div>
+  <div class="m-panel" id="mp-home">
+    <div class="p-card">
+      <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>翻译模式</div>
+      <p style="font-size:11px;line-height:1.6;color:var(--text-light)">不完全消除情绪，而是翻译情绪背后的<span style="color:var(--green)">真实需求</span></p>
+    </div>
+    <div class="p-card">
+      <div class="p-card-title">翻译深度</div>
+      <div class="s-row"><span class="sl">浅层翻译</span><span class="sv">缓和语气</span></div>
+      <div class="s-row"><span class="sl">标准翻译</span><span class="sv" style="font-weight:700">✓ 推荐</span></div>
+      <div class="s-row"><span class="sl">深层翻译</span><span class="sv">解析情感与需求</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-title">关系场景</div>
+      <div class="chips"><div class="chip sel">伴侣沟通</div><div class="chip">亲子沟通</div><div class="chip">与长辈沟通</div></div>
+    </div>
+    <button class="demo-btn"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></span>试听：咆哮 → 需求翻译</button>
+  </div>
+  <div class="m-panel" id="mp-custom">
+    <div class="p-card">
+      <div class="p-card-title">自定义参数</div>
+      <div class="s-row"><span class="sl">情绪过滤强度</span><span class="sv">70%</span></div>
+      <div class="s-row"><span class="sl">语速调整</span><span class="sv">-20%</span></div>
+      <div class="s-row"><span class="sl">音调调整</span><span class="sv">降低</span></div>
+      <div class="s-row"><span class="sl">NLP 语义提取</span><span class="sv">开启</span></div>
+      <div class="s-row"><span class="sl">情绪可视化</span><span class="sv">开启</span></div>
+    </div>
+    <button class="demo-btn"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>保存为"我的模式"</button>
+  </div>
+</div>
+
+<!-- ===== 过滤记录 ===== -->
+<div class="phone-page" id="pg-record">
+  <div class="pg-title">过滤记录</div>
+  <div class="r-tabs"><div class="r-tab on">今日</div><div class="r-tab">本周</div><div class="r-tab">本月</div></div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>情绪分布</div>
+    <div class="chart-ph">
+      <div class="chart-bar" style="height:80%;background:linear-gradient(180deg,var(--red),#F08080)"></div>
+      <div class="chart-bar" style="height:45%;background:linear-gradient(180deg,var(--orange),#F4C080)"></div>
+      <div class="chart-bar" style="height:35%;background:linear-gradient(180deg,#A78BFA,#C4B5FD)"></div>
+      <div class="chart-bar" style="height:25%;background:linear-gradient(180deg,var(--primary),var(--primary-light))"></div>
+      <div class="chart-bar" style="height:15%;background:linear-gradient(180deg,var(--green),#7DD4A8)"></div>
+    </div>
+    <div class="chart-lbl"><span>愤怒</span><span>烦躁</span><span>悲伤</span><span>焦虑</span><span>中性</span></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title">过滤详情</div>
+    <div class="rec-item"><div class="rec-hd"><span class="rec-time">14:32</span><span class="rec-tag w"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></span>职场</span></div><div class="rec-orig">"你脑子有病吗？这个报表第三行数字错了，重做！"</div><div class="rec-filt"><span class="ic" style="color:var(--primary)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>报表第三行数字有误，请修正。</div></div>
+    <div class="rec-item"><div class="rec-hd"><span class="rec-time">12:15</span><span class="rec-tag h"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span>家庭</span></div><div class="rec-orig">"你怎么又没洗碗！你心里还有这个家吗！"</div><div class="rec-filt"><span class="ic" style="color:var(--green)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z"/></svg></span>对方感到疲惫和被忽视，核心需求：希望你去洗碗。</div></div>
+    <div class="rec-item"><div class="rec-hd"><span class="rec-time">10:08</span><span class="rec-tag w"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></span>职场</span></div><div class="rec-orig">"这都做不好？你是猪吗？重新做一份！"</div><div class="rec-filt"><span class="ic" style="color:var(--primary)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>此方案需要重做，请重新提交一份。</div></div>
+    <div class="rec-item"><div class="rec-hd"><span class="rec-time">09:20</span><span class="rec-tag w"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a4 4 0 00-8 0v2"/></svg></span>职场</span></div><div class="rec-orig">"我不管你用什么办法，今天下班前必须给我！"</div><div class="rec-filt"><span class="ic" style="color:var(--primary)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>请在今日下班前完成此任务。</div></div>
+  </div>
+</div>
+<!-- ===== 健康中心 ===== -->
+<div class="phone-page" id="pg-health">
+  <div class="pg-title">健康中心</div>
+  <div class="h-card">
+    <div class="hl">今日佩戴时长</div>
+    <div class="hv">5h 12min</div>
+    <div class="hs">距离建议上限还剩 2h 48min</div>
+    <div class="p-bar"><div class="f" style="width:65%"></div></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>裸耳对话计划</div>
+    <div class="plan"><div class="plan-icon" style="background:#E8F5EE;color:var(--green)"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span></div><div class="plan-info"><div class="pt">周一裸耳对话</div><div class="pd">与家人沟通 30min · 已完成</div></div><div class="plan-chk done"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="3"/></svg></span></div></div>
+    <div class="plan"><div class="plan-icon" style="background:#E8F5EE;color:var(--green)"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span></div><div class="plan-info"><div class="pt">周三裸耳对话</div><div class="pd">与朋友聊天 45min · 已完成</div></div><div class="plan-chk done"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="3"/></svg></span></div></div>
+    <div class="plan"><div class="plan-icon" style="background:#FFF4E8;color:var(--orange)"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span></div><div class="plan-info"><div class="pt">周五裸耳对话</div><div class="pd">本周目标 2h，已完成 1h 15min</div></div><div class="plan-chk"></div></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span>沟通能力成长</div>
+    <div class="badge-g">
+      <div class="badge"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 10-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="bn">初识情绪</div></div>
+      <div class="badge"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></div><div class="bn">冷静大师</div></div>
+      <div class="badge"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="bn">和平使者</div></div>
+      <div class="badge"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg></div><div class="bn">倾听达人</div></div>
+      <div class="badge lock"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="bn">情绪管理师</div></div>
+      <div class="badge lock"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="bn">沟通专家</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 设备管理 ===== -->
+<div class="phone-page" id="pg-device">
+  <div class="pg-title">设备管理</div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>耳塞状态</div>
+    <div class="ear-st">
+      <div class="ear-u"><div class="ear-c hi">78%</div><div class="ear-l">左耳</div></div>
+      <div class="ear-u"><div class="ear-c md">52%</div><div class="ear-l">右耳</div></div>
+      <div class="ear-u"><div class="ear-c hi">90%</div><div class="ear-l">充电盒</div></div>
+    </div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title">连接与更新</div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#E8EEF8"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11"/><path d="M6.5 17.5l11-11"/><path d="M12 2v20"/></svg></span></div><div><div class="set-n">蓝牙连接</div><div class="set-d">JingYan-Pro 已连接</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#E8F5EE"><span class="ic" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span></div><div><div class="set-n">固件升级</div><div class="set-d">v2.1.0 · 已是最新</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>触控手势</div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/></svg></span></div><div><div class="set-n">单击</div><div class="set-d">切换模式</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/></svg></span></div><div><div class="set-n">双击</div><div class="set-d">开关过滤</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/></svg></span></div><div><div class="set-n">长按</div><div class="set-d">透明模式</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title">透明模式</div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FDE8E8"><span class="ic" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span></div><div><div class="set-n">指示灯提示</div><div class="set-d">告知对方正在使用过滤器</div></div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FDE8E8"><span class="ic" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span></div><div><div class="set-n">摘下自动透明</div><div class="set-d">摘下单边耳机自动启用</div></div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+  </div>
+</div>
+
+<!-- ===== 我的 ===== -->
+<div class="phone-page" id="pg-profile">
+  <div class="prof-hd">
+    <div class="avatar"><span class="ic"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span></div>
+    <div class="prof-n">静言用户</div>
+    <div class="prof-s">已使用 32 天 · 过滤 1,247 次</div>
+  </div>
+  <div class="p-card">
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#E8EEF8"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span></div><div class="set-n">个人资料</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#E8F5EE"><span class="ic" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span></div><div class="set-n">隐私与安全</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span></div><div class="set-n">通知设置</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#F0F4FF"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></span></div><div class="set-n">深色模式</div></div><div class="tgl" onclick="this.classList.toggle('on')"></div></div>
+  </div>
+  <div class="p-card">
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#F0F4FF"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span></div><div class="set-n">使用指南</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#F0F4FF"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span></div><div class="set-n">常见问题</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#F0F4FF"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span></div><div class="set-n">联系客服</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#F0F4FF"><span class="ic" style="color:var(--primary)"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></div><div><div class="set-n">关于静言</div><div class="set-d">版本 2.1.0</div></div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+  </div>
+  <div class="p-card">
+    <div class="p-card-title">专家功能</div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span></div><div class="set-n">数据导出</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span></div><div class="set-n">自定义词库</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg></span></div><div class="set-n">模型微调</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+    <div class="set-r"><div class="set-l"><div class="set-i" style="background:#FFF4E8"><span class="ic" style="color:var(--orange)"><svg width="16" height="16" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span></div><div class="set-n">开发者模式</div></div><div class="set-a"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+  </div>
+</div>
+
+</div>
+
+<!-- 底部导航 -->
+<div class="phone-bottom-nav">
+  <div class="nav-item active" onclick="swP('home',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--primary)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>首页</div>
+  <div class="nav-item" onclick="swP('mode',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--text-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>模式</div>
+  <div class="nav-item" onclick="swP('record',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--text-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>记录</div>
+  <div class="nav-item" onclick="swP('health',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--text-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>健康</div>
+  <div class="nav-item" onclick="swP('device',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--text-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z"/><circle cx="12" cy="12" r="3"/></svg>设备</div>
+  <div class="nav-item" onclick="swP('profile',this)" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;cursor:pointer;color:var(--text-light)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>我的</div>
+</div>
+</div>
+</div>
+
+<!-- 右侧说明 -->
+<div class="app-right">
+<div class="guide-panel">
+  <h3><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>静言 App 交互说明</h3>
+  <div class="guide-section">
+    <h4><span class="guide-badge g-badge-n">新手</span>首次使用引导</h4>
+    <ul><li>欢迎页 → 产品理念（3屏轮播）</li><li>蓝牙配对 → 动画演示佩戴</li><li>场景选择（职场/家庭推荐）</li><li>首次试听 → 原始 vs 过滤对比</li><li>健康须知 → 开始使用</li></ul>
+  </div>
+  <div class="guide-section">
+    <h4><span class="guide-badge g-badge-r">老手</span>日常快捷路径</h4>
+    <ul><li>底部导航快速切换 6 大模块</li><li>首页快捷操作（一键过滤/切换/透明）</li><li>通知栏 / 桌面小组件</li><li>耳塞触控手势（单击/双击/长按）</li><li>自动化规则（地理围栏触发）</li></ul>
+  </div>
+  <div class="guide-section">
+    <h4><span class="guide-badge g-badge-e">专家</span>高级功能</h4>
+    <ul><li>我的 → 数据导出（CSV/PDF）</li><li>我的 → 自定义词库 / 模型微调</li><li>我的 → 开发者模式</li><li>设备 → 触控手势深度自定义</li></ul>
+  </div>
+  <div class="page-desc" id="pageDesc"><strong><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span> 当前：首页</strong><br>状态总览、佩戴环形图、今日过滤摘要、快捷操作按钮。</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<footer class="footer"><p>静言 · App 界面原型 — 交互设计课程作品</p></footer>
+
+<script>
+const descs={
+  home:'<strong>当前：首页</strong><br>状态总览、佩戴环形图、今日过滤摘要、快捷操作按钮。',
+  mode:'<strong>当前：模式中心</strong><br>职场简报/家庭翻译/自定义三种模式配置。含过滤强度、播报方式、试听演示。',
+  record:'<strong>当前：过滤记录</strong><br>时间线视图 + 情绪分布柱状图 + 单条过滤详情对比。',
+  health:'<strong>当前：健康中心</strong><br>佩戴时长管理、裸耳对话打卡、沟通能力成长徽章。',
+  device:'<strong>当前：设备管理</strong><br>耳塞电量、蓝牙/固件、触控手势映射、透明模式开关。',
+  profile:'<strong>当前：我的</strong><br>个人资料、隐私安全、通知设置，以及专家功能入口。'
+};
+function swP(id,el){
+  document.querySelectorAll('.phone-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  document.querySelectorAll('.phone-bottom-nav .nav-item').forEach(n=>{n.style.color='var(--text-light)';n.classList.remove('active')});
+  el.style.color='var(--primary)';el.classList.add('active');
+  document.getElementById('pageDesc').innerHTML=descs[id]||'';
+}
+function swMT(el,pid){
+  el.parentElement.querySelectorAll('.m-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.m-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById(pid).classList.add('on');
+}
+document.querySelectorAll('.chip').forEach(c=>{c.addEventListener('click',()=>{c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel')})});
+document.querySelectorAll('.r-tab').forEach(t=>{t.addEventListener('click',()=>{t.parentElement.querySelectorAll('.r-tab').forEach(x=>x.classList.remove('on'));t.classList.add('on')})});
+const obSteps=[
+  {t:'欢迎使用静言',d:'将语言中的情绪杂质过滤，<br>只留下信息本身',b:'下一页'},
+  {t:'连接你的耳塞',d:'打开蓝牙，将耳塞靠近手机<br>即可自动配对',b:'下一页'},
+  {t:'选择使用场景',d:'职场模式：过滤情绪保留指令<br>家庭模式：翻译情绪揭示需求',b:'下一页'},
+  {t:'试听过滤效果',d:'"你脑子有病吗？报表第三行错了！"<br>→ "报表第三行数字有误，请修正。"',b:'开始使用'}
+];
+let obS=0;const obEl=document.getElementById('ob');
+document.getElementById('obBtn').onclick=()=>{
+  if(obS<obSteps.length-1){obS++}else{obEl.classList.remove('show');return}
+  const s=obSteps[obS];
+  document.getElementById('obT').textContent=s.t;
+  document.getElementById('obD').innerHTML=s.d;
+  document.getElementById('obBtn').textContent=s.b;
+  document.querySelectorAll('.ob-dot').forEach((d,i)=>d.classList.toggle('on',i===obS));
+};
+setTimeout(()=>obEl.classList.add('show'),600);
+</script>
+</body>
+</html>
+</div>
+</div>
+</div>
+

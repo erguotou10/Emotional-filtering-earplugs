@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静言 按键操作说明</title>
+<link rel="stylesheet" href="css/common.css">
+<style>
+/* ===== 耳塞图示 ===== */
+.earphone-diagram {
+  display:flex; align-items:center; justify-content:center;
+  gap:60px; padding:40px 0;
+}
+.earphone-visual {
+  position:relative; width:180px; height:260px;
+}
+.ep-body {
+  width:72px; height:108px;
+  background:linear-gradient(145deg, #d4e2f0, #a8c4e0);
+  border-radius:36px 36px 18px 18px;
+  position:absolute; top:20px; left:50%; transform:translateX(-50%);
+  box-shadow:0 6px 20px rgba(74,111,165,0.2);
+}
+.ep-body::before {
+  content:''; width:32px; height:32px;
+  background:linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius:50%; position:absolute;
+  top:36px; left:50%; transform:translateX(-50%);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.15);
+}
+.ep-body::after {
+  content:''; width:12px; height:44px;
+  background:linear-gradient(180deg, #b8d0e8, #8ab0d0);
+  border-radius:6px; position:absolute;
+  bottom:-32px; left:50%; transform:translateX(-50%);
+}
+/* 触控区高亮 */
+.touch-zone {
+  width:32px; height:32px; border-radius:50%;
+  border:2px dashed var(--primary);
+  position:absolute; top:54px; left:50%; transform:translateX(-50%);
+  animation:pulse 2s ease-in-out infinite;
+}
+/* 标注线 */
+.annotation {
+  position:absolute; display:flex; align-items:center; gap:6px;
+  font-size:11px; font-weight:600; white-space:nowrap;
+}
+.annotation .dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.annotation .line {
+  width:40px; height:1px; flex-shrink:0;
+}
+.ann-tap { top:56px; right:-120px; }
+.ann-tap .dot, .ann-tap .line { background:var(--primary); }
+.ann-swipe { top:100px; left:-130px; flex-direction:row-reverse; }
+.ann-swipe .dot, .ann-swipe .line { background:var(--orange); }
+.ann-led { bottom:60px; right:-100px; }
+.ann-led .dot, .ann-led .line { background:var(--green); }
+.ann-in-ear { bottom:20px; left:-120px; flex-direction:row-reverse; }
+.ann-in-ear .dot, .ann-in-ear .line { background:var(--red); }
+
+/* ===== 手势演示卡 ===== */
+.gesture-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.gesture-card {
+  background:var(--card); border-radius:var(--radius);
+  padding:28px 20px; text-align:center;
+  box-shadow:var(--shadow); position:relative;
+  overflow:hidden; transition:var(--transition);
+}
+.gesture-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.gesture-card .g-icon {
+  width:64px; height:64px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; margin:0 auto 14px;
+  transition:transform .3s;
+}
+.gesture-card:hover .g-icon { transform:scale(1.1); }
+.gesture-card .g-title { font-size:16px; font-weight:700; margin-bottom:4px; }
+.gesture-card .g-action { font-size:13px; color:var(--primary); font-weight:600; margin-bottom:8px; }
+.gesture-card .g-desc { font-size:12px; color:var(--text-light); line-height:1.6; }
+.gesture-card .g-badge {
+  position:absolute; top:12px; right:12px;
+  font-size:9px; padding:3px 8px; border-radius:6px;
+  font-weight:700;
+}
+
+/* ===== 指示灯 ===== */
+.led-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.led-item {
+  background:var(--card); border-radius:var(--radius);
+  padding:24px 16px; text-align:center;
+  border:1px solid var(--border); transition:var(--transition);
+}
+.led-item:hover { border-color:currentColor; }
+.led-dot {
+  width:32px; height:32px; border-radius:50%;
+  margin:0 auto 12px; position:relative;
+}
+.led-dot::after {
+  content:''; position:absolute; top:-4px; left:-4px; right:-4px; bottom:-4px;
+  border-radius:50%; opacity:.3;
+}
+.led-dot.blue { background:#4A6FA5; box-shadow:0 0 12px rgba(74,111,165,0.5); }
+.led-dot.blue::after { background:#4A6FA5; }
+.led-dot.green { background:#5CB88A; box-shadow:0 0 12px rgba(92,184,138,0.5); }
+.led-dot.green::after { background:#5CB88A; }
+.led-dot.orange { background:#F0A050; box-shadow:0 0 12px rgba(240,160,80,0.5); }
+.led-dot.orange::after { background:#F0A050; }
+.led-dot.red { background:#E86060; box-shadow:0 0 12px rgba(232,96,96,0.5); }
+.led-dot.red::after { background:#E86060; }
+.led-name { font-size:13px; font-weight:600; margin-bottom:4px; }
+.led-desc { font-size:11px; color:var(--text-light); }
+
+/* ===== 紧急操作 ===== */
+.emergency-card {
+  background:linear-gradient(135deg, #FFF4E8, #FFF0E0);
+  border:2px solid var(--orange);
+  border-radius:var(--radius);
+  padding:28px; display:flex; align-items:center; gap:24px;
+}
+.emergency-icon { font-size:48px; flex-shrink:0; }
+.emergency-info .ei-title { font-size:17px; font-weight:700; color:var(--orange); margin-bottom:6px; }
+.emergency-info .ei-desc { font-size:13px; color:#666; line-height:1.7; }
+
+/* ===== App端操作表 ===== */
+.app-ops-table {
+  width:100%; border-collapse:collapse;
+  background:var(--card); border-radius:var(--radius);
+  overflow:hidden; box-shadow:var(--shadow);
+}
+.app-ops-table th {
+  background:var(--primary); color:#fff;
+  padding:14px 20px; font-size:13px; font-weight:600;
+  text-align:left;
+}
+.app-ops-table td {
+  padding:14px 20px; font-size:13px;
+  border-bottom:1px solid var(--border);
+}
+.app-ops-table tr:last-child td { border:none; }
+.app-ops-table tr:hover td { background:#FAFBFE; }
+.op-icon { font-size:18px; margin-right:8px; }
+
+@media (max-width:800px) {
+  .gesture-grid { grid-template-columns:1fr; }
+  .led-grid { grid-template-columns:repeat(2,1fr); }
+  .earphone-diagram { flex-direction:column; }
+  .emergency-card { flex-direction:column; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-brand"><span class="brand-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></span><span>静言</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">产品介绍</a>
+    <a class="nav-link" href="app.html">App 界面</a>
+    <a class="nav-link active" href="controls.html">操作说明</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- Hero -->
+  <section class="hero" style="padding-bottom:40px">
+    <h1 class="hero-title animate-slide-up">操作说明</h1>
+    <p class="hero-subtitle animate-slide-up delay-1">
+      耳塞触控手势、指示灯状态、紧急操作，以及 App 端快捷功能一览
+    </p>
+  </section>
+
+  <!-- 耳塞图示 -->
+  <section class="section" style="padding-top:20px">
+    <h2 class="section-title">耳塞结构示意</h2>
+    <p class="section-subtitle">隐藏式设计，佩戴后几乎不可见</p>
+
+    <div class="earphone-diagram animate-slide-up">
+      <div class="earphone-visual">
+        <div class="ep-body"></div>
+        <div class="touch-zone"></div>
+        <div class="annotation ann-tap"><div class="dot"></div><div class="line"></div><span>触控区</span></div>
+        <div class="annotation ann-swipe"><div class="dot"></div><div class="line"></div><span>骨传导单元</span></div>
+        <div class="annotation ann-led"><div class="dot"></div><div class="line"></div><span>指示灯</span></div>
+        <div class="annotation ann-in-ear"><div class="dot"></div><div class="line"></div><span>入耳检测</span></div>
+      </div>
+
+      <div style="max-width:300px">
+        <div class="card-flat" style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text-light);margin-bottom:4px">外观材质</div>
+          <div style="font-size:14px;font-weight:600">半透明肤感材质，似高端助听器</div>
+        </div>
+        <div class="card-flat" style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text-light);margin-bottom:4px">佩戴方式</div>
+          <div style="font-size:14px;font-weight:600">骨传导 + 微型气传导双模</div>
+        </div>
+        <div class="card-flat">
+          <div style="font-size:11px;color:var(--text-light);margin-bottom:4px">推荐佩戴</div>
+          <div style="font-size:14px;font-weight:600">职场单耳 · 家庭双耳</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 手势操作 -->
+  <section class="section" style="background:#fff">
+    <h2 class="section-title">触控手势操作</h2>
+    <p class="section-subtitle">三种手势覆盖核心功能，盲操友好</p>
+
+    <div class="gesture-grid">
+      <div class="gesture-card animate-slide-up delay-1">
+        <span class="g-badge tag-blue">常用</span>
+        <div class="g-icon" style="background:rgba(74,111,165,0.1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/></svg></div>
+        <div class="g-title">单击</div>
+        <div class="g-action">切换模式</div>
+        <div class="g-desc">在职场模式与家庭模式之间切换。单击一次即切换，指示灯颜色随之变化。</div>
+      </div>
+      <div class="gesture-card animate-slide-up delay-2">
+        <span class="g-badge tag-green">常用</span>
+        <div class="g-icon" style="background:rgba(92,184,138,0.1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/><line x1="8" y1="2" x2="8" y2="5"/><line x1="16" y1="2" x2="16" y2="5"/></svg></div>
+        <div class="g-title">双击</div>
+        <div class="g-action">开关过滤</div>
+        <div class="g-desc">开启或关闭情绪过滤功能。关闭后耳塞变为普通蓝牙耳机，所有语音原声播放。</div>
+      </div>
+      <div class="gesture-card animate-slide-up delay-3">
+        <span class="g-badge tag-orange">安全</span>
+        <div class="g-icon" style="background:rgba(240,160,80,0.1)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M18 11V6a4 4 0 00-4-4H10a4 4 0 00-4 4v0"/><path d="M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v6"/><path d="M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v8"/><path d="M18 8a2 2 0 012 2v8a8 8 0 01-8 8h-2a8 8 0 01-8-8v-2"/></svg></div>
+        <div class="g-title">长按</div>
+        <div class="g-action">透明模式</div>
+        <div class="g-desc">长按 1 秒进入透明模式。指示灯变为橙色，告知对方你正在通过过滤器聆听。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 指示灯 -->
+  <section class="section">
+    <h2 class="section-title">指示灯状态</h2>
+    <p class="section-subtitle">四种颜色，一目了然</p>
+
+    <div class="led-grid animate-slide-up">
+      <div class="led-item" style="color:var(--primary)">
+        <div class="led-dot blue"></div>
+        <div class="led-name">蓝色</div>
+        <div class="led-desc">职场模式<br>简报模式运行中</div>
+      </div>
+      <div class="led-item" style="color:var(--green)">
+        <div class="led-dot green"></div>
+        <div class="led-name">绿色</div>
+        <div class="led-desc">家庭模式<br>翻译模式运行中</div>
+      </div>
+      <div class="led-item" style="color:var(--orange)">
+        <div class="led-dot orange"></div>
+        <div class="led-name">橙色</div>
+        <div class="led-desc">透明模式<br>对方可见提示</div>
+      </div>
+      <div class="led-item" style="color:var(--red)">
+        <div class="led-dot red"></div>
+        <div class="led-name">红色</div>
+        <div class="led-desc">电量低<br>请尽快充电</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 入耳检测 -->
+  <section class="section" style="background:#fff">
+    <h2 class="section-title">智能感应</h2>
+    <p class="section-subtitle">无需手动操作，耳塞自动感知佩戴状态</p>
+
+    <div class="grid-2 animate-slide-up" style="max-width:700px;margin:0 auto">
+      <div class="card" style="text-align:center;padding:32px">
+        <div style="margin-bottom:12px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">戴上自动启用</div>
+        <div style="font-size:12px;color:var(--text-light);line-height:1.6">
+          入耳检测传感器感知佩戴状态，<br>自动恢复上次使用的过滤模式
+        </div>
+      </div>
+      <div class="card" style="text-align:center;padding:32px">
+        <div style="margin-bottom:12px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">摘下自动暂停</div>
+        <div style="font-size:12px;color:var(--text-light);line-height:1.6">
+          摘下单边耳机自动暂停过滤，<br>摘下两边自动断开蓝牙连接
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 紧急操作 -->
+  <section class="section">
+    <h2 class="section-title">紧急操作</h2>
+    <p class="section-subtitle">任何时候都可以快速恢复</p>
+
+    <div class="emergency-card animate-slide-up">
+      <div class="emergency-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="emergency-info">
+        <div class="ei-title">三击耳塞 → 强制恢复透明模式</div>
+        <div class="ei-desc">
+          无论当前处于何种状态，快速连续敲击耳塞三次即可立即恢复透明模式。<br>
+          此操作不可被 App 设置覆盖，作为物理级安全保障。<br>
+          触发后系统会自动记录日志，可在 App「过滤记录」中查看。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- App端操作 -->
+  <section class="section" style="background:#fff">
+    <h2 class="section-title">App 端快捷操作</h2>
+    <p class="section-subtitle">手机端多种快捷入口，效率拉满</p>
+
+    <table class="app-ops-table animate-slide-up">
+      <thead>
+        <tr>
+          <th>操作方式</th>
+          <th>位置</th>
+          <th>功能</th>
+          <th>适用用户</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>底部导航栏</td>
+          <td>App 底部</td>
+          <td>切换首页/模式/记录/健康/设备/我的</td>
+          <td><span class="tag tag-green">新手</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>首页快捷按钮</td>
+          <td>App 首页</td>
+          <td>一键过滤 / 切换模式 / 透明模式</td>
+          <td><span class="tag tag-blue">老手</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>通知栏快捷操作</td>
+          <td>系统通知栏</td>
+          <td>不下拉 App，直接开关过滤或切换模式</td>
+          <td><span class="tag tag-blue">老手</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>桌面小组件</td>
+          <td>手机桌面</td>
+          <td>状态小组件（模式+电量）、快捷开关小组件</td>
+          <td><span class="tag tag-blue">老手</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>语音助手</td>
+          <td>Siri / 小爱</td>
+          <td>"切换到职场模式" / "关闭过滤"</td>
+          <td><span class="tag tag-blue">老手</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>自动化规则</td>
+          <td>App 设备页</td>
+          <td>到达公司自动职场模式，到家自动家庭模式</td>
+          <td><span class="tag tag-orange">专家</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>数据导出</td>
+          <td>App 我的页</td>
+          <td>导出过滤记录为 CSV / PDF</td>
+          <td><span class="tag tag-orange">专家</span></td>
+        </tr>
+        <tr>
+          <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>自定义词库</td>
+          <td>App 我的页</td>
+          <td>管理敏感词/白名单/行业术语</td>
+          <td><span class="tag tag-orange">专家</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 手势自定义 -->
+  <section class="section">
+    <h2 class="section-title">手势自定义（进阶）</h2>
+    <p class="section-subtitle">在 App「设备管理 → 触控手势」中可自定义映射</p>
+
+    <div class="grid-3 animate-slide-up" style="max-width:800px;margin:0 auto">
+      <div class="card-flat" style="text-align:center;padding:24px">
+        <div style="margin-bottom:8px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/></svg></div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">单击</div>
+        <div style="font-size:11px;color:var(--text-light)">默认：切换模式</div>
+        <div style="font-size:11px;color:var(--text-light)">可选：开关过滤 / 透明模式</div>
+      </div>
+      <div class="card-flat" style="text-align:center;padding:24px">
+        <div style="margin-bottom:8px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M14 9V5a3 3 0 00-6 0v4"/><path d="M18 8a4 4 0 014 4v5a6 6 0 01-6 6H8a6 6 0 01-6-6v-5a4 4 0 014-4h12z"/><line x1="8" y1="2" x2="8" y2="5"/><line x1="16" y1="2" x2="16" y2="5"/></svg></div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">双击</div>
+        <div style="font-size:11px;color:var(--text-light)">默认：开关过滤</div>
+        <div style="font-size:11px;color:var(--text-light)">可选：切换模式 / 透明模式</div>
+      </div>
+      <div class="card-flat" style="text-align:center;padding:24px">
+        <div style="margin-bottom:8px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><path d="M18 11V6a4 4 0 00-4-4H10a4 4 0 00-4 4v0"/><path d="M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v6"/><path d="M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v8"/><path d="M18 8a2 2 0 012 2v8a8 8 0 01-8 8h-2a8 8 0 01-8-8v-2"/></svg></div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">长按</div>
+        <div style="font-size:11px;color:var(--text-light)">默认：透明模式</div>
+        <div style="font-size:11px;color:var(--text-light)">可选：切换模式 / 开关过滤</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text-light);margin-top:16px">
+      三击强制恢复透明模式为物理级安全操作，不可自定义覆盖
+    </p>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>静言 · 按键操作说明 — 交互设计课程作品</p>
+    <div style="margin-top:12px;display:flex;gap:12px;justify-content:center">
+      <a href="index.html" class="btn btn-outline" style="padding:8px 20px;font-size:12px">← 产品介绍</a>
+      <a href="app.html" class="btn btn-primary" style="padding:8px 20px;font-size:12px">App 界面 →</a>
+    </div>
+  </footer>
+</div>
+
+</body>
+</html>
